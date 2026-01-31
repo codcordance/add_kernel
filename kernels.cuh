@@ -3,21 +3,19 @@
 
 #include <cuda_bf16.h>
 
-struct DataArrays
-{
-    float *x;
-    float *y;
+template <typename T>
+struct DataArrays {
+    const int n;
+    T *x;
+    T *y;
 };
 
-struct DataArraysBF16
-{
-    __nv_bfloat16 *x;
-    __nv_bfloat16 *y;
-};
+using DataArraysFP32 = DataArrays<float>;
+using DataArraysBF16 = DataArrays<__nv_bfloat16>;
 
-void launch_add_naive(int n, DataArrays data);
-void launch_add_block(int n, DataArrays data);
-void launch_add_threadBlock(int n, DataArrays data);
-void launch_add_threadBlockBF16(int n, DataArraysBF16 data);
+void launch_add_naive(const DataArraysFP32 &data);
+void launch_add_block(const DataArraysFP32 &data);
+void launch_add_threadBlock(const DataArraysFP32 &data);
+void launch_add_threadBlockBF16(const DataArraysBF16 &data);
 
 #endif //ADD_KERNEL_KERNELS_CUH
