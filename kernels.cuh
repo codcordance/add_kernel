@@ -3,9 +3,11 @@
 
 #include <cuda_bf16.h>
 
+using uint = unsigned int;
+
 template <typename T>
 struct DataArrays {
-    const int n;
+    const uint n;
     T *x;
     T *y;
 };
@@ -17,5 +19,6 @@ void launch_add_naive(const DataArraysFP32 &data);
 void launch_add_block(const DataArraysFP32 &data);
 void launch_add_threadBlock(const DataArraysFP32 &data);
 void launch_add_threadBlockBF16(const DataArraysBF16 &data);
+void launch_add_threadBlockBF16Vector(const DataArraysBF16 &data);
 
 #endif //ADD_KERNEL_KERNELS_CUH

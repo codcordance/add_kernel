@@ -1,10 +1,10 @@
 #include "kernels.cuh"
 
-constexpr int blockSize = 256; //can be changed, for demo.
+constexpr uint blockSize = 256; //can be changed, for demo.
 
 //ADD NAIVE
-__global__ void add_naive_kernel(const int n, const float *x, float *y) {
-    for (int i = 0; i < n; i++)
+__global__ void add_naive_kernel(const uint n, const float *x, float *y) {
+    for (uint i = 0; i < n; i++)
         y[i] = x[i] + y[i];
 }
 
@@ -17,10 +17,10 @@ void launch_add_naive(const DataArraysFP32 &data) {
 }
 
 //ADD BLOCK
-__global__ void add_block_kernel(const int n, const float *x, float *y) {
-    const unsigned int index = threadIdx.x;
-    const unsigned int stride = blockDim.x; //here stride = blockSize
-    for (unsigned int i = index; i < n; i += stride)
+__global__ void add_block_kernel(const uint n, const float *x, float *y) {
+    const uint index = threadIdx.x;
+    const uint stride = blockDim.x; //here stride = blockSize
+    for (uint i = index; i < n; i += stride)
         y[i] = x[i] + y[i];
 }
 
@@ -33,10 +33,10 @@ void launch_add_block(const DataArraysFP32 &data) {
 }
 
 //ADD THREAD BLOCK
-__global__ void add_threadBlock_kernel(const int n, const float *x, float *y) {
-    const unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
-    const unsigned int stride = blockDim.x * gridDim.x;
-    for (unsigned int i = index; i < n; i += stride)
+__global__ void add_threadBlock_kernel(const uint n, const float *x, float *y) {
+    const uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    const uint stride = blockDim.x * gridDim.x;
+    for (uint i = index; i < n; i += stride)
         y[i] = x[i] + y[i];
 }
 
@@ -45,16 +45,16 @@ __global__ void add_threadBlock_kernel(const int n, const float *x, float *y) {
  * Dispatch the additions in the threads of multiple blocks.
  */
 void launch_add_threadBlock(const DataArraysFP32 &data) {
-    int numBlocks = (data.n + blockSize - 1) / blockSize; //ensure there are enough blocks for all the threads.
+    uint numBlocks = (data.n + blockSize - 1) / blockSize; //ensure there are enough blocks for all the threads.
     add_threadBlock_kernel<<<numBlocks, blockSize>>>(data.n, data.x, data.y);
 }
 
 //ADD THREAD BLOCK BF16
-__global__ void add_threadBlockBF16_kernel(const int n, const __nv_bfloat16 *x, __nv_bfloat16 *y) {
-    const unsigned int  index = blockIdx.x * blockDim.x + threadIdx.x;
-    const unsigned int  stride = blockDim.x * gridDim.x;
+__global__ void add_threadBlockBF16_kernel(const uint n, const __nv_bfloat16* __restrict__  x, __nv_bfloat16* __restrict__ y) {
+     const uint index = blockIdx.x * blockDim.x + threadIdx.x;
+     const uint stride = blockDim.x * gridDim.x;
 
-    for (unsigned int i = index; i < n; i += stride)
+    for (uint i = index; i < n; i += stride)
         y[i] = __hadd(x[i], y[i]);
 }
 
@@ -63,7 +63,32 @@ __global__ void add_threadBlockBF16_kernel(const int n, const __nv_bfloat16 *x, 
  * Dispatch the additions in the threads of multiple blocks.
  */
 void launch_add_threadBlockBF16(const DataArraysBF16 &data) {
-    int numBlocks = (data.n + blockSize - 1) / blockSize;
+    uint numBlocks = (data.n + blockSize - 1) / blockSize;
     add_threadBlockBF16_kernel<<<numBlocks, blockSize>>>(data.n, data.x, data.y);
 }
 
+//ADD THREAD BLOCK BF16 VECTORIZED
+__global__ void add_threadBlockBF16Vector_kernel(const uint n, __nv_bfloat16 *x, __nv_bfloat16 *y) {
+    //Warning: did not check here since n = 2^something but n must be even !!!
+    const auto *x_vec = reinterpret_cast< __nv_bfloat162*>(x);
+    auto *y_vec = reinterpret_cast<__nv_bfloat162*>(y);
+
+    // stride and index are divided by 2 since we're working with 2 elements at a time.
+    const uint n_vec = n / 2;
+    const uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    const uint stride = blockDim.x * gridDim.x;
+
+    for (uint i = index; i < n_vec; i += stride) {
+        y_vec[i] = __hadd2(x_vec[i], y_vec[i]);
+    }
+}
+
+/**
+ * Element-wise vector addition: y = x + y for BF16 format.
+ * This one works with vectorized __nv_bfloat162 = 2 BF16 (4 bytes).
+ * Dispatch the additions in the threads of multiple blocks.
+ */
+void launch_add_threadBlockBF16Vector(const DataArraysBF16 &data) {
+    uint numBlocks = (data.n + blockSize - 1) / blockSize;
+    add_threadBlockBF16Vector_kernel<<<numBlocks, blockSize>>>(data.n, data.x, data.y);
+}
