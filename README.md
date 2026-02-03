@@ -24,8 +24,10 @@ $$16 \times 128 / 8 = 256\ \text{GB/s}$$
 
 ## Results
 
-I run the experiments with $n = 2^{27} = 13 4217 728$ and $\texttt{blockSize} = 256$.
-Each kernel is run $r = 4$ times.
+I run the following experiment:
+- $n = 2^{27} = 134\ 217\ 728$ (so an array of $n$ `float`/FP32 is $\approx 0.54\ \text{GB}$) ;
+- $\texttt{blockSize} = 256$ ;
+- each kernel is run $r = 4$ times.
 
 #### Laptop (RTX 4060 laptop), plugged in (AC power)
 
