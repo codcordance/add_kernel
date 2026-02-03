@@ -33,16 +33,16 @@ table (kernel, mean duration, mean effective bandwidth, total error)
 ```text
 addNaive (FP32)                            11551.580 ms  |       0.14 GB/s  |      0.000e+00
 addNaiveRestrict (FP32)                     3225.731 ms  |       0.50 GB/s  |      0.000e+00
-addNaiveSizeT (FP32)                        1678.231 ms  |       0.24 GB/s  |      0.000e+00
-addNaiveSizeTRestrict (FP32)                1378.039 ms  |       0.29 GB/s  |      0.000e+00
-addNaiveFloat2Restrict (FP32)               1121.469 ms  |       0.36 GB/s  |      0.000e+00
-addNaiveFloat4Restrict (FP32)                950.717 ms  |       0.42 GB/s  |      0.000e+00
-addNaiveFloat4NoTail (FP32)                  911.890 ms  |       0.44 GB/s  |      0.000e+00
-addNaiveFloat2RestrictNoTail (FP32)         1132.483 ms  |       0.36 GB/s  |      0.000e+00
-addNaiveFloat4RestrictNoTail (FP32)          973.865 ms  |       0.41 GB/s  |      0.000e+00
+addNaiveSizeT (FP32)                        6471.052 ms  |       0.25 GB/s  |      0.000e+00
+addNaiveSizeTRestrict (FP32)                5145.722 ms  |       0.31 GB/s  |      0.000e+00
+addNaiveFloat2Restrict (FP32)               4106.704 ms  |       0.39 GB/s  |      0.000e+00
+addNaiveFloat4Restrict (FP32)               3438.462 ms  |       0.47 GB/s  |      0.000e+00
+addNaiveFloat4NoTail (FP32)                 3352.914 ms  |       0.48 GB/s  |      0.000e+00
+addNaiveFloat2RestrictNoTail (FP32)         4105.456 ms  |       0.39 GB/s  |      0.000e+00
+addNaiveFloat4RestrictNoTail (FP32)         3353.073 ms  |       0.48 GB/s  |      0.000e+00
 
-addThreadBlock (FP32)                          7.171 ms  |     224.60 GB/s  |      0.000e+00
-addThreadBlockRestrict (FP32)                  7.175 ms  |     224.46 GB/s  |      0.000e+00
+addThreadBlock (FP32)                          7.171 ms  |     224.59 GB/s  |      0.000e+00
+addThreadBlockRestrict (FP32)                  7.165 ms  |     224.78 GB/s  |      0.000e+00
 ```
 
 more TODO (real kernels).
