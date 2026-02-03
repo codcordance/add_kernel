@@ -24,7 +24,7 @@ $$16 \times 128 / 8 = 256\; \text{GB/s}$$
 
 ## Results
 
-I run the experiments with $n = 2^{25} = 33\ 554\ 432$ and $\texttt{blockSize} = 256$.
+I run the experiments with $n = 2^{27} = 13 4217 728$ and $\texttt{blockSize} = 256$.
 
 #### Laptop (RTX 4060 laptop), plugged in (AC power)
 
@@ -38,6 +38,9 @@ addNaiveFloat4Restrict (FP32)                950.717 ms  |       0.42 GB/s  |   
 addNaiveFloat4NoTail (FP32)                  911.890 ms  |       0.44 GB/s  |      0.000e+00
 addNaiveFloat2RestrictNoTail (FP32)         1132.483 ms  |       0.36 GB/s  |      0.000e+00
 addNaiveFloat4RestrictNoTail (FP32)          973.865 ms  |       0.41 GB/s  |      0.000e+00
+
+addThreadBlock (FP32)                          7.171 ms  |     224.60 GB/s  |      0.000e+00
+addThreadBlockRestrict (FP32)                  7.175 ms  |     224.46 GB/s  |      0.000e+00
 ```
 
 more TODO (real kernels).
