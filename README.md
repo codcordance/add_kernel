@@ -9,17 +9,17 @@ signed index, `__restrict__` pointers, vectorisation, rolling with and without t
 
 ### Effective Bandwidth
 
-The kernels are compared based on their effective bandwidth in $\text{GB/s}$. Each kernel is performing $2n$ read operations 
-($x$ and $y$) and $n$ write operation ($y$), so the effective bandwidth is $2n \times s/t$ where
+The kernels are compared based on their effective bandwidth in $\text{GB/s}$. Each kernel is performing $2n$ read
+operations and $n$ write operations, so the effective bandwidth is $2n \times s/t$ where
 - $t$ is the time spent in the kernel ;
-- $s$ is the format size: $s = 4\; \text B$ for `float` (FP32) and $s = 2\; \text B$ for `__nv_bfloat16` (BF16)
+- $s$ is the format size: $s = 4\ \text B$ for `float` (FP32) and $s = 2\ \text B$ for `__nv_bfloat16` (BF16)
 
 ### Hardware & Theoretical bandwidth
 
 Some experiments were run on my laptop, with a _NVIDIA Geforce RTX 4060 Laptop_ GPU. According to
 [NotebookCheck.net](https://www.notebookcheck.net/NVIDIA-GeForce-RTX-4060-Laptop-GPU-Benchmarks-and-Specs.675692.0.html),
 it has a clock speed of 16 Gbps (effective) and a 128 Bit memory bus, so the effective bandwidth is 
-$$16 \times 128 / 8 = 256\; \text{GB/s}$$
+$$16 \times 128 / 8 = 256\ \text{GB/s}$$
 
 
 ## Results
@@ -45,7 +45,7 @@ addThreadBlock (FP32)                          7.171 ms  |     224.59 GB/s  |   
 addThreadBlockRestrict (FP32)                  7.165 ms  |     224.78 GB/s  |      0.000e+00
 ```
 
-more TODO (real kernels).
+more TODO :)
 
 
 #### Laptop (RTX 4060 laptop), on battery
