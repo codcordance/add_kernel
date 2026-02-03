@@ -1,34 +1,48 @@
 # Add kernel experiments
 
 Some experiments on writing a basic CUDA kernel with C++, consisting in adding two arrays of floats of length $n$,
-following $y: = x + y$. My goal was to follow the approach presented in the [CUDA C++ tutorial](https://docs.nvidia.com/cuda/cuda-c-tutorial/index.html)
-to [optimize](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#optimize) the kernel at best.
+following $y: = x + y$. My goal was to benchmark the performance of different optimization techniques in kernel writing:
+signed index, `__restrict__` pointers, vectorisation, rolling with and without tail, ... (see 
+[CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/) inter alia).
+
+## Benchmarking
+
+### Effective Bandwidth
+
+The kernels are compared based on their effective bandwidth in $\text{GB/s}$. Each kernel is performing $2n$ read operations 
+($x$ and $y$) and $n$ write operation ($y$), so the effective bandwidth is $2n \times s/t$ where
+- $t$ is the time spent in the kernel ;
+- $s$ is the format size: $s = 4\; \text B$ for `float` (FP32) and $s = 2\; \text B$ for `__nv_bfloat16` (BF16)
 
 ### Hardware & Theoretical bandwidth
 
-Some experiments were run on my laptop, with an _RTX 4060 GPU (laptop version)_.
+Some experiments were run on my laptop, with a _NVIDIA Geforce RTX 4060 Laptop_ GPU. According to
+[NotebookCheck.net](https://www.notebookcheck.net/NVIDIA-GeForce-RTX-4060-Laptop-GPU-Benchmarks-and-Specs.675692.0.html),
+it has a clock speed of 16 Gbps (effective) and a 128 Bit memory bus, so the effective bandwidth is 
+$$16 \times 128 / 8 = 256\; \text{GB/s}$$
 
+
+## Results
 
 I run the experiments with $n = 2^{25} = 33\ 554\ 432$ and $\texttt{blockSize} = 256$.
 
 #### Laptop (RTX 4060 laptop), plugged in (AC power)
 
 ```text
-Time (%)  Total Time (ns)  Instances    Avg (ns)      Med (ns)     Min (ns)    Max (ns)   StdDev (ns)   Category                                   Operation                               
- --------  ---------------  ---------  ------------  ------------  ----------  ----------  -----------  -----------  -----------------------------------------------------------------------
-     96.1      29219323847         10  2921932384.7  2922872725.5  2886322536  2964987954   22085809.4  CUDA_KERNEL  add_naive_kernel(int, const float *, float *)                          
-      3.0        917981253         10    91798125.3    67687496.0    49484641   181808069   50006193.9  CUDA_KERNEL  add_block_kernel(int, const float *, float *)                          
-      0.5        153213380         10    15321338.0    22159363.0      786521    22312097    9322731.5  CUDA_KERNEL  add_threadBlockBF16_kernel(int, const __nv_bfloat16 *, __nv_bfloat16 *)
-      0.3        102423509         10    10242350.9    10232088.0     1673298    18828414    9025949.0  CUDA_KERNEL  add_threadBlock_kernel(int, const float *, float *)                    
+addNaive (FP32)                             2987.939 ms  |       0.13 GB/s  |      0.000e+00
+addNaiveRestrict (FP32)                      925.093 ms  |       0.44 GB/s  |      0.000e+00
+addNaiveSizeT (FP32)                        1678.231 ms  |       0.24 GB/s  |      0.000e+00
+addNaiveSizeTRestrict (FP32)                1378.039 ms  |       0.29 GB/s  |      0.000e+00
+addNaiveFloat2Restrict (FP32)               1121.469 ms  |       0.36 GB/s  |      0.000e+00
+addNaiveFloat4Restrict (FP32)                950.717 ms  |       0.42 GB/s  |      0.000e+00
+addNaiveFloat4NoTail (FP32)                  911.890 ms  |       0.44 GB/s  |      0.000e+00
+addNaiveFloat2RestrictNoTail (FP32)         1132.483 ms  |       0.36 GB/s  |      0.000e+00
+addNaiveFloat4RestrictNoTail (FP32)          973.865 ms  |       0.41 GB/s  |      0.000e+00
 ```
+
+more TODO (real kernels).
+
 
 #### Laptop (RTX 4060 laptop), on battery
 
-```text
-Time (%)  Total Time (ns)  Instances   Avg (ns)    Med (ns)   Min (ns)  Max (ns)  StdDev (ns)   Category     Operation
- --------  ---------------  ---------  ----------  ----------  --------  --------  -----------  -----------  -----------------------------------------------------------------------
-     99.2        663005681         10  66300568.1  66421328.0  65172362  66468000     397411.8  CUDA_KERNEL  add_naive_kernel(int, const float *, float *)                          
-      0.8          5134264         10    513426.4    513500.0    511228    515612       1063.7  CUDA_KERNEL  add_block_kernel(int, const float *, float *)                          
-      0.0           132223         10     13222.3     13216.0     13183     13248         25.4  CUDA_KERNEL  add_threadBlockBF16_kernel(int, const __nv_bfloat16 *, __nv_bfloat16 *)
-      0.0           123871         10     12387.1     12384.0     12383     12416         10.2  CUDA_KERNEL  add_threadBlock_kernel(int, const float *, float *)
-```
+TODO :)
