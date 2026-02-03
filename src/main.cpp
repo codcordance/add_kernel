@@ -14,7 +14,7 @@ int main() {
     cudaStream_t s;
     CUDA_CHECK(cudaStreamCreate(&s));
 
-    const bool naive = false;
+    const bool naive = true;
 
     if (naive) {
         bench("addNaive (FP32)",                                n, repeats, s, addNaive);

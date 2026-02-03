@@ -25,12 +25,14 @@ $$16 \times 128 / 8 = 256\; \text{GB/s}$$
 ## Results
 
 I run the experiments with $n = 2^{27} = 13 4217 728$ and $\texttt{blockSize} = 256$.
+Each kernel is run $r = 4$ times.
 
 #### Laptop (RTX 4060 laptop), plugged in (AC power)
 
+table (kernel, mean duration, mean effective bandwidth, total error)
 ```text
-addNaive (FP32)                             2987.939 ms  |       0.13 GB/s  |      0.000e+00
-addNaiveRestrict (FP32)                      925.093 ms  |       0.44 GB/s  |      0.000e+00
+addNaive (FP32)                            11551.580 ms  |       0.14 GB/s  |      0.000e+00
+addNaiveRestrict (FP32)                     3225.731 ms  |       0.50 GB/s  |      0.000e+00
 addNaiveSizeT (FP32)                        1678.231 ms  |       0.24 GB/s  |      0.000e+00
 addNaiveSizeTRestrict (FP32)                1378.039 ms  |       0.29 GB/s  |      0.000e+00
 addNaiveFloat2Restrict (FP32)               1121.469 ms  |       0.36 GB/s  |      0.000e+00
