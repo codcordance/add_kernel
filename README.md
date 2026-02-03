@@ -18,7 +18,7 @@ operations and $n$ write operations, so the effective bandwidth is $2n \times s/
 
 Some experiments were run on my laptop, with a _NVIDIA Geforce RTX 4060 Laptop_ GPU. According to
 [NotebookCheck.net](https://www.notebookcheck.net/NVIDIA-GeForce-RTX-4060-Laptop-GPU-Benchmarks-and-Specs.675692.0.html),
-it has a clock speed of 16 Gbps (effective) and a 128 Bit memory bus, so the effective bandwidth is 
+it has a clock speed of 16 Gbps (effective) and a 128 Bit memory bus, so the theoretical bandwidth is 
 $$16 \times 128 / 8 = 256\ \text{GB/s}$$
 
 
