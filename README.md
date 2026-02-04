@@ -33,15 +33,28 @@ I run the following experiment:
 
 table (kernel, mean duration, mean effective bandwidth, total error)
 ```text
-addNaive (FP32)                            11551.580 ms  |       0.14 GB/s  |      0.000e+00
-addNaiveRestrict (FP32)                     3225.731 ms  |       0.50 GB/s  |      0.000e+00
-addNaiveSizeT (FP32)                        6471.052 ms  |       0.25 GB/s  |      0.000e+00
-addNaiveSizeTRestrict (FP32)                5145.722 ms  |       0.31 GB/s  |      0.000e+00
-addNaiveFloat2Restrict (FP32)               4106.704 ms  |       0.39 GB/s  |      0.000e+00
-addNaiveFloat4Restrict (FP32)               3438.462 ms  |       0.47 GB/s  |      0.000e+00
-addNaiveFloat4NoTail (FP32)                 3352.914 ms  |       0.48 GB/s  |      0.000e+00
-addNaiveFloat2RestrictNoTail (FP32)         4105.456 ms  |       0.39 GB/s  |      0.000e+00
-addNaiveFloat4RestrictNoTail (FP32)         3353.073 ms  |       0.48 GB/s  |      0.000e+00
+addNaiveIV1U1NC (FP32)                     11562.777 ms  |       0.14 GB/s  |      0.000e+00
+addNaiveIV1U1NR (FP32)                      3227.047 ms  |       0.50 GB/s  |      0.000e+00
+addNaiveSV1U1NC (FP32)                      6470.865 ms  |       0.25 GB/s  |      0.000e+00
+addNaiveSV1U1NR (FP32)                      5181.450 ms  |       0.31 GB/s  |      0.000e+00
+addNaiveIV1U2TC (FP32)                      6468.836 ms  |       0.25 GB/s  |      0.000e+00
+addNaiveIV1U2TR (FP32)                      4678.101 ms  |       0.34 GB/s  |      0.000e+00
+addNaiveIV1U2MC (FP32)                      6469.069 ms  |       0.25 GB/s  |      0.000e+00
+addNaiveIV1U2MR (FP32)                      4678.330 ms  |       0.34 GB/s  |      0.000e+00
+addNaiveSV1U2TC (FP32)                      6459.227 ms  |       0.25 GB/s  |      0.000e+00
+addNaiveSV1U2TR (FP32)                      4712.350 ms  |       0.34 GB/s  |      0.000e+00
+addNaiveSV1U2MC (FP32)                      6467.008 ms  |       0.25 GB/s  |      0.000e+00
+addNaiveSV1U2MR (FP32)                      4819.595 ms  |       0.33 GB/s  |      0.000e+00
+addNaiveIV1U4TC (FP32)                     11573.858 ms  |       0.14 GB/s  |      0.000e+00
+addNaiveIV1U4TR (FP32)                      3608.495 ms  |       0.45 GB/s  |      0.000e+00
+addNaiveIV1U4MC (FP32)                     11571.075 ms  |       0.14 GB/s  |      0.000e+00
+addNaiveIV1U4MR (FP32)                      3222.539 ms  |       0.50 GB/s  |      0.000e+00
+addNaiveSV1U4TC (FP32)                     11254.399 ms  |       0.14 GB/s  |      0.000e+00
+addNaiveSV1U4TR (FP32)                      3283.462 ms  |       0.49 GB/s  |      0.000e+00
+addNaiveSV1U4MC (FP32)                     11295.900 ms  |       0.14 GB/s  |      0.000e+00
+addNaiveSV1U4MR (FP32)                      3249.226 ms  |       0.50 GB/s  |      0.000e+00
+addNaiveIV2U1TC (FP32)                      8449.339 ms  |       0.19 GB/s  |      0.000e+00
+addNaiveIV2U1TR (FP32)                      3575.265 ms  |       0.45 GB/s  |      0.000e+00
 
 addThreadBlock (FP32)                          7.171 ms  |     224.59 GB/s  |      0.000e+00
 addThreadBlockRestrict (FP32)                  7.165 ms  |     224.78 GB/s  |      0.000e+00

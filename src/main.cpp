@@ -16,18 +16,8 @@ int main() {
 
     const bool naive = true;
 
-    if (naive) {
-        bench("addNaive (FP32)",                                n, repeats, s, addNaive);
-        bench("addNaiveRestrict (FP32)",                        n, repeats, s, addNaiveRestrict);
-        bench("addNaiveSizeT (FP32)",                           n, repeats, s, addNaiveSizeT);
-        bench("addNaiveSizeTRestrict (FP32)",                   n, repeats, s, addNaiveSizeTRestrict);
-        bench("addNaiveFloat2Restrict (FP32)",                  n, repeats, s, addNaiveFloat2Restrict);
-        bench("addNaiveFloat4Restrict (FP32)",                  n, repeats, s, addNaiveFloat4Restrict);
-        //bench("addNaiveFloat2Restrict (FP32)",                     n, repeats, s, addNaiveFloat2Restrict);
-        bench("addNaiveFloat4NoTail (FP32)",                    n, repeats, s, addNaiveFloat4NoTail);
-        bench("addNaiveFloat2RestrictNoTail (FP32)",            n, repeats, s, addNaiveFloat2RestrictNoTail);
-        bench("addNaiveFloat4RestrictNoTail (FP32)",            n, repeats, s, addNaiveFloat4RestrictNoTail);
-    }
+    if (naive)
+        benchAllNaive(n, repeats, s);
 
     bench("addThreadBlock (FP32)",                          n, repeats, s, addThreadBlock);
     bench("addThreadBlockRestrict (FP32)",                  n, repeats, s, addThreadBlockRestrict);

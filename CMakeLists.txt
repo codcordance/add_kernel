@@ -17,10 +17,10 @@ add_executable(add_kernel
         src/bench.h
         src/data.h
         src/cuda_utils.h
-        src/kernels/naive.cu
-        src/kernels/naive.cuh
         src/kernels/thread_block.cu
         src/kernels/thread_block.cuh
+        src/kernels/naive.cu
+        src/kernels/naive.cuh
 )
 
 target_link_libraries(add_kernel PRIVATE CUDA::cudart)
