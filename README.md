@@ -90,6 +90,17 @@ addNaiveIV4U2TR (FP32)                      3489.579 ms  |       0.46 GB/s  |   
 addNaiveIV4U2MC (FP32)                      5400.877 ms  |       0.30 GB/s  |      0.000e+00
 addNaiveIV4U2MR (FP32)                      2970.918 ms  |       0.54 GB/s  |      0.000e+00
 addNaiveSV4U2TC (FP32)                      5801.050 ms  |       0.28 GB/s  |      0.000e+00
+addNaiveSV4U2TR (FP32)                      4379.254 ms  |       0.37 GB/s  |      0.000e+00
+addNaiveSV4U2MC (FP32)                      5826.562 ms  |       0.28 GB/s  |      0.000e+00
+addNaiveSV4U2MR (FP32)                      3486.219 ms  |       0.46 GB/s  |      0.000e+00
+addNaiveIV4U4TC (FP32)                      4688.270 ms  |       0.34 GB/s  |      0.000e+00
+addNaiveIV4U4TR (FP32)                      3498.262 ms  |       0.46 GB/s  |      0.000e+00
+addNaiveIV4U4MC (FP32)                      5398.816 ms  |       0.30 GB/s  |      0.000e+00
+addNaiveIV4U4MR (FP32)                      2968.335 ms  |       0.54 GB/s  |      0.000e+00
+addNaiveSV4U4TC (FP32)                      5798.795 ms  |       0.28 GB/s  |      0.000e+00
+addNaiveSV4U4TR (FP32)                      4295.663 ms  |       0.37 GB/s  |      0.000e+00
+addNaiveSV4U4MC (FP32)                      5796.854 ms  |       0.28 GB/s  |      0.000e+00
+addNaiveSV4U4MR (FP32)                      2975.204 ms  |       0.54 GB/s  |      0.000e+00
 
 addThreadBlock (FP32)                          7.171 ms  |     224.59 GB/s  |      0.000e+00
 addThreadBlockRestrict (FP32)                  7.165 ms  |     224.78 GB/s  |      0.000e+00

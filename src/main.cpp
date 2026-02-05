@@ -16,11 +16,22 @@ int main() {
 
     const bool naive = true;
 
-    if (naive)
+    if (naive) {
+        std::cout << "Benching naive kernels..." << std::endl;
         benchAllNaive(n, repeats, s);
+    }
 
-    bench("addThreadBlock (FP32)",                          n, repeats, s, addThreadBlock);
-    bench("addThreadBlockRestrict (FP32)",                  n, repeats, s, addThreadBlockRestrict);
+    std::cout << "Benching threadBlock kernels : blockSize = 256, gridStrideBlocks = 2048" << std::endl;
+    benchAllThreadBlock(n, repeats, s);
+
+    std::cout << "Benching threadBlock kernels : blockSize = 384, gridStrideBlocks = 2048" << std::endl;
+    benchAllThreadBlock(n, repeats, s, 384);
+
+    std::cout << "Benching threadBlock kernels : blockSize = 256, gridStrideBlocks = 768" << std::endl;
+    benchAllThreadBlock(n, repeats, s, 256, 768);
+
+    std::cout << "Benching threadBlock kernels : blockSize = 384, gridStrideBlocks = 768" << std::endl;
+    benchAllThreadBlock(n, repeats, s, 384, 768);
 
     CUDA_CHECK(cudaStreamDestroy(s));
     return 0;

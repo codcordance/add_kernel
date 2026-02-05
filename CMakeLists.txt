@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 20)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_COMPILER "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.1/bin/nvcc.exe")
-set(CMAKE_CUDA_FLAGS "-keep")
+set(CMAKE_CUDA_FLAGS "-keep -O3 -Xptxas -v")
 
 find_package(CUDAToolkit REQUIRED)
 
