@@ -30,11 +30,11 @@
 // Loop selectors (mo vs gs)
 // =================
 
-// mo: un seul "chunk" par thread (pas de boucle grid-stride)
+// mo: just if statement
 #define TB_LOOP_mo(IndexT, idxVar, base, bound, stride, BODY) \
     do { IndexT idxVar = (base); if (idxVar < (bound)) { BODY; } } while (0)
 
-// gs: boucle grid-stride
+// gs: grid-stride loop
 #define TB_LOOP_gs(IndexT, idxVar, base, bound, stride, BODY) \
     for (IndexT idxVar = (base); idxVar < (bound); idxVar += (stride)) { BODY; }
 
@@ -137,11 +137,11 @@ VU_LIST_EXCEPT_V1U1(DEFINE_ALL_KERNELS_FOR_ONE_VU)
 // Host wrappers (launch)
 // =====================
 
-static inline int divUpSizeT(const std::size_t a, const std::size_t b) {
+static int divUpSizeT(const std::size_t a, const std::size_t b) {
     return (int)((a + b - 1) / b);
 }
 
-static inline int blocksFor(const std::size_t nVec, const int u, const int blockSize) {
+static int blocksFor(const std::size_t nVec, const int u, const int blockSize) {
     std::size_t threadsNeeded = (nVec + (std::size_t)u - 1) / (std::size_t)u;
     if (threadsNeeded == 0) threadsNeeded = 1;
     int blocks = divUpSizeT(threadsNeeded, (std::size_t)blockSize);

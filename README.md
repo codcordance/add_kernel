@@ -12,28 +12,86 @@ signed index, `__restrict__` pointers, vectorisation, rolling with and without t
 The kernels are compared based on their effective bandwidth in $\text{GB/s}$. Each kernel is performing $2n$ read
 operations and $n$ write operations, so the effective bandwidth is $2n \times s/t$ where
 - $t$ is the time spent in the kernel ;
-- $s$ is the format size: $s = 4\ \text B$ for `float` (FP32) and $s = 2\ \text B$ for `__nv_bfloat16` (BF16)
+- $s$ is the format size: $s = 4\ \text B$ for `float`/FP32 (it would be $s = 2\ \text B$ for `__nv_bfloat16`/BF16)
 
 ### Hardware & Theoretical bandwidth
 
-Some experiments were run on my laptop, with a _NVIDIA Geforce RTX 4060 Laptop_ GPU. According to
+The experiments were run on my laptop, with a _NVIDIA Geforce RTX 4060 Laptop_ GPU. According to
 [NotebookCheck.net](https://www.notebookcheck.net/NVIDIA-GeForce-RTX-4060-Laptop-GPU-Benchmarks-and-Specs.675692.0.html),
-it has a clock speed of 16 Gbps (effective) and a 128 Bit memory bus, so the theoretical bandwidth is 
+it has a clock speed of 16 Gbps (effective) and a 128-Bit memory bus, so the theoretical bandwidth is 
 $$16 \times 128 / 8 = 256\ \text{GB/s}$$
+
+### Kernels
+
+My results are based on the following configuration:
+
+* (n = 2^{27} = 134,217,728) (so an array of (n) `float`/FP32 is (\approx 0.54\ \text{GB})) ;
+* each kernel is run (r = 4) times
+
+The benchmark covers two families of kernels: a naive implementation (one thread does all the work) and a thread-block implementation (work is distributed across threads, with a grid-wide traversal of the arrays). All kernels implement the same elementwise addition and differ only by indexing choices, pointer qualifiers, and memory-access patterns.
+
+I use the following abbreviations in kernel names:
+
+- **C vs R** indicates whether pointers are passed as `__restrict__` (`C` for baseline pointers, `R`: for `__restrict__` pointers, i.e., non-aliasing assumption for the compiler).
+
+    In all cases, using `__restrict__` is beneficial in my measurements (monotone improvement), so **all thread-block kernels are benchmarked in the `R` configuration**.
+
+- **I vs S** indicates the type used for loop counters / indices: `I` for indexing with signed `int` (see [CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/#loop-counters-signed-vs-unsigned)
+on Loop Counters Signed vs. Unsigned), `S` for indexing with `size_t` (unsigned).
+
+- **V** and **U** encode vector width and unrolling:
+
+  * `V1`, `V2`, `V4`: scalar (`float`), 2-wide, or 4-wide vectorized operations
+  * `U1`, `U2`, `U4`: unroll factor in the main loop body
+
+- **N / T / M** encode how vectorization is expressed:
+
+  * `N`: “no vectorization” baseline; this exists only for the `V1U1` case (pure scalar loads/stores).
+  * `T`: vectorized memory operations while keeping the API as `float*` (vector loads/stores generated from `float*` addresses).
+  * `M`: vector pointer API (`float2*` / `float4*`), i.e., vectorization is expressed in the pointer type.
+
+- For thread-block kernels, **gs** and **mo** use two traversal strategies:
+
+  * grid-stride `gs`: grid-stride loop to cover the full array. These kernels were run with multiple launch configurations (different block sizes and numbers of blocks).
+  * monolithic `mo`: enough threads to cover the whole array (no loop). Run with variable block sizes and `(n + blockSize - 1) / blockSize` blocks.
 
 
 ## Results
 
-I run the following experiment:
-- $n = 2^{27} = 134\ 217\ 728$ (so an array of $n$ `float`/FP32 is $\approx 0.54\ \text{GB}$) ;
-- $\texttt{blockSize} = 256$ ;
-- each kernel is run $r = 4$ times.
+`__restrict__` yields a consistent, monotone gain in my measurements. Based on this, all thread-block results reported below use `__restrict__`.
 
-#### Laptop (RTX 4060 laptop), plugged in (AC power)
+The best performing kernel is `addThreadBlockIV4U4MRmo` at $\approx 241\ \text{GB/s}$.
+Within the thread-block kernels, there is a reproducible spread (roughly $230 \pm 10\ \text{GB/s}$ effective bandwidth) even when restricting attention to a single access mode (e.g., only `M` kernels or only `T` kernels). Some effects I observed are:
+1. grid-stride vs monolithic: For some configurations, the `gs` variant is measurably slower than the `mo` one. This effect is not uniform across all kernels: it is most visible for `T` kernels (vector loads/stores derived from `float*`), and typically smaller for `M` kernels (vector pointer API). A plausible explanation is that the traversal changes the distribution of effective alignment and boundary-crossing patterns at the warp level. In `T`, because the base pointers are `float*`, alignment guarantees are weaker at the type level; generating 16-byte vector transactions from such addresses can be more sensitive to how indices map to byte addresses. In contrast, `M` communicates alignment through the pointer type and tends to behave more consistently across traversals.
 
-table (kernel, mean duration, mean effective bandwidth, total error)
+2. Unrolling helps (`U1` < `U2` < `U4`). Increasing `U` tends to increase achieved bandwidth (probably since it increases ILP (instruction-level parallelism) and keeps more memory operations in flight, hiding latency). In my results, `U4` is very often near the best.
+
+3. Vectorization helps (`V1` < `V2` < `V4`, when accesses stay well-behaved).
+When alignment and coalescing are good, `V4` variants are typically at or near the top.
+
+4. Following NVIDIA recommendations, indexing with `int` (`I` kernels) perform slightly better than `size_t` (`S` kernels) for most kernels.
+
+As an illustration of the `T` vs `M` distinction, the `T` kernels typically contain PTX sequences of the form:
+
+```ptx
+ld.global.nc.v4.f32  {...}, [addr_from_float_ptr];
+ld.global.v4.f32     {...}, [addr_from_float_ptr];
+st.global.v4.f32     [addr_from_float_ptr], {...};
+```
+
+while the `M` kernels correspond to a `float4*` API and tend to map more directly to 128-bit memory instructions in SASS (e.g., `LDG.E.128` / `STG.E.128` patterns), with less sensitivity to how vectorization is "reconstructed" from scalar pointer arithmetic.
+
+**Note on register count**: Register count correlates with performance in a few cases but it is not sufficient by itself to explain all variations. For instance, in the V4U4 grid-stride pair shown below, the M-variant uses more registers than the T-variant (48 vs 39), which can reduce occupancy; this is a reasonable contributing factor to the observed throughput gap, but the final performance also depends on instruction mix and scheduling (e.g., the balance between integer address-generation and vector memory operations).
+
+---
+
+### Table of results
+
+#### naive implementation (all work in one thread)
+
 ```text
-Benching naive kernels...
+Name                                       Mean duration |  Mean bandwidth  |    Total error
+============================================================================================
 addNaiveIV1U1NC (FP32)                     11527.752 ms  |       0.14 GB/s  |      0.000e+00
 addNaiveIV1U1NR (FP32)                      3215.736 ms  |       0.50 GB/s  |      0.000e+00
 addNaiveSV1U1NC (FP32)                      6459.632 ms  |       0.25 GB/s  |      0.000e+00
@@ -102,7 +160,13 @@ addNaiveSV4U4TC (FP32)                      5796.208 ms  |       0.28 GB/s  |   
 addNaiveSV4U4TR (FP32)                      4306.069 ms  |       0.37 GB/s  |      0.000e+00
 addNaiveSV4U4MC (FP32)                      5790.847 ms  |       0.28 GB/s  |      0.000e+00
 addNaiveSV4U4MR (FP32)                      2963.809 ms  |       0.54 GB/s  |      0.000e+00
-Benching threadBlock kernels : blockSize = 256, gridStrideBlocks = 2048
+```
+
+#### blockSize = 256, gridStrideBlocks = 2048
+
+```text
+Name                                       Mean duration |  Mean bandwidth  |    Total error
+============================================================================================
 addThreadBlockIV1U1NRmo (FP32)                 7.125 ms  |     226.06 GB/s  |      0.000e+00
 addThreadBlockIV1U1NRgs (FP32)                 7.052 ms  |     228.40 GB/s  |      0.000e+00
 addThreadBlockSV1U1NRmo (FP32)                 7.118 ms  |     226.28 GB/s  |      0.000e+00
@@ -171,7 +235,13 @@ addThreadBlockSV4U4TRmo (FP32)                 6.857 ms  |     234.87 GB/s  |   
 addThreadBlockSV4U4TRgs (FP32)                 6.826 ms  |     235.94 GB/s  |      0.000e+00
 addThreadBlockSV4U4MRmo (FP32)                 6.815 ms  |     236.34 GB/s  |      0.000e+00
 addThreadBlockSV4U4MRgs (FP32)                 6.798 ms  |     236.91 GB/s  |      0.000e+00
-Benching threadBlock kernels : blockSize = 384, gridStrideBlocks = 2048
+```
+
+#### blockSize = 384, gridStrideBlocks = 2048
+
+```text
+Name                                       Mean duration |  Mean bandwidth  |    Total error
+============================================================================================
 addThreadBlockIV1U1NRmo (FP32)                 7.088 ms  |     227.23 GB/s  |      0.000e+00
 addThreadBlockIV1U1NRgs (FP32)                 7.091 ms  |     227.15 GB/s  |      0.000e+00
 addThreadBlockSV1U1NRmo (FP32)                 7.136 ms  |     225.70 GB/s  |      0.000e+00
@@ -240,7 +310,13 @@ addThreadBlockSV4U4TRmo (FP32)                 6.872 ms  |     234.36 GB/s  |   
 addThreadBlockSV4U4TRgs (FP32)                 6.785 ms  |     237.38 GB/s  |      0.000e+00
 addThreadBlockSV4U4MRmo (FP32)                 6.826 ms  |     235.94 GB/s  |      0.000e+00
 addThreadBlockSV4U4MRgs (FP32)                 6.820 ms  |     236.16 GB/s  |      0.000e+00
-Benching threadBlock kernels : blockSize = 256, gridStrideBlocks = 768
+```
+
+#### blockSize = 256, gridStrideBlocks = 768
+
+```text
+Name                                       Mean duration |  Mean bandwidth  |    Total error
+============================================================================================
 addThreadBlockIV1U1NRmo (FP32)                 7.101 ms  |     226.81 GB/s  |      0.000e+00
 addThreadBlockIV1U1NRgs (FP32)                 6.984 ms  |     230.63 GB/s  |      0.000e+00
 addThreadBlockSV1U1NRmo (FP32)                 7.072 ms  |     227.74 GB/s  |      0.000e+00
@@ -309,7 +385,13 @@ addThreadBlockSV4U4TRmo (FP32)                 6.862 ms  |     234.71 GB/s  |   
 addThreadBlockSV4U4TRgs (FP32)                 6.795 ms  |     237.04 GB/s  |      0.000e+00
 addThreadBlockSV4U4MRmo (FP32)                 6.793 ms  |     237.09 GB/s  |      0.000e+00
 addThreadBlockSV4U4MRgs (FP32)                 6.783 ms  |     237.45 GB/s  |      0.000e+00
-Benching threadBlock kernels : blockSize = 384, gridStrideBlocks = 768
+```
+
+#### blockSize = 384, gridStrideBlocks = 768
+
+```text
+Name                                       Mean duration |  Mean bandwidth  |    Total error
+============================================================================================
 addThreadBlockIV1U1NRmo (FP32)                 7.143 ms  |     225.50 GB/s  |      0.000e+00
 addThreadBlockIV1U1NRgs (FP32)                 7.064 ms  |     228.00 GB/s  |      0.000e+00
 addThreadBlockSV1U1NRmo (FP32)                 7.097 ms  |     226.96 GB/s  |      0.000e+00
@@ -379,8 +461,3 @@ addThreadBlockSV4U4TRgs (FP32)                 6.841 ms  |     235.45 GB/s  |   
 addThreadBlockSV4U4MRmo (FP32)                 6.813 ms  |     236.40 GB/s  |      0.000e+00
 addThreadBlockSV4U4MRgs (FP32)                 6.820 ms  |     236.17 GB/s  |      0.000e+00
 ```
-
-
-#### Laptop (RTX 4060 laptop), on battery
-
-TODO :)
