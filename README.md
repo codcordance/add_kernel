@@ -1,9 +1,8 @@
 # Add kernel experiments
 
-Some experiments on writing a basic CUDA kernel with C++, consisting in adding two arrays of floats of length $n$,
-following $y: = x + y$. My goal was to benchmark the performance of different optimization techniques in kernel writing:
-signed index, `__restrict__` pointers, vectorisation, rolling with and without tail, ... (see 
-[CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/) inter alia).
+Some experiments on writing a CUDA kernel with C++, consisting in adding two arrays of floats of length $n$,
+following $y: = x + y$ (saxpy with $a = 1$). My goal was to study the behavior of NVCC and benchmark the performance of different techniques in kernel writing. See inter alia the
+[CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/).
 
 ## Benchmarking
 
