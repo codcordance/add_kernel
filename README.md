@@ -25,8 +25,9 @@ $$16 \times 128 / 8 = 256\ \text{GB/s}$$
 
 My results are based on the following configuration:
 
-* (n = 2^{27} = 134,217,728) (so an array of (n) `float`/FP32 is (\approx 0.54\ \text{GB})) ;
-* each kernel is run (r = 4) times
+* $n = 2^{27} = 134,217,728$ (an array of $n$ `float`/FP32 is $\approx 0.54\ \text{GB}$) ;
+* each kernel is run $r = 4$ times ;
+* laptop power supply connected (kernel seems to run slower when running on battery).
 
 The benchmark covers two families of kernels: a naive implementation (one thread does all the work) and a thread-block implementation (work is distributed across threads, with a grid-wide traversal of the arrays). All kernels implement the same elementwise addition and differ only by indexing choices, pointer qualifiers, and memory-access patterns.
 
